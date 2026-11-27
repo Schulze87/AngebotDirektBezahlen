@@ -3,7 +3,7 @@ name: Build Plugin
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:   # manuell auslösbar
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,11 +18,11 @@ jobs:
           echo "=== Repo-Root ==="
           ls -la
           echo "=== Plugin-Verzeichnis ==="
-          ls -la ./LukasQuantityRule
+          ls -la ./MeinAngebotPlugin
           echo "=== composer.json (Plugin) ==="
-          cat ./LukasQuantityRule/composer.json
+          cat ./MeinAngebotPlugin/composer.json
           echo "=== src/ (Auszug) ==="
-          find ./LukasQuantityRule/src -maxdepth 3 -type f | head -n 200
+          find ./MeinAngebotPlugin/src -maxdepth 3 -type f | head -n 200
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Extension ZIP
         run: |
-          shopware-cli extension zip ./LukasQuantityRule \
+          shopware-cli extension zip ./MeinAngebotPlugin \
             --disable-git \
             --output-directory ./dist \
             --verbose
@@ -46,6 +46,6 @@ jobs:
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LukasQuantityRule
+          name: MeinAngebotPlugin
           path: ./dist/*.zip
           retention-days: 30
