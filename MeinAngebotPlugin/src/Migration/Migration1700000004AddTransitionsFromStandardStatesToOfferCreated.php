@@ -6,7 +6,7 @@ use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
 
-class Migration1700000003AddTransitionsFromStandardStatesToOfferCreated extends MigrationStep
+class Migration1700000004AddTransitionsFromStandardStatesToOfferCreated extends MigrationStep
 {
     public function getCreationTimestamp(): int
     {
