@@ -6,11 +6,11 @@ use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
 
-class Migration1700000000AddOfferCreatedState extends MigrationStep
+class Migration1700000001AddOfferCreatedTransitions extends MigrationStep
 {
     public function getCreationTimestamp(): int
     {
-        return 1700000000;
+        return 1700000001;
     }
 
     public function update(Connection $connection): void
@@ -22,54 +22,19 @@ class Migration1700000000AddOfferCreatedState extends MigrationStep
         );
 
         if (!$stateMachineId) {
-            throw new \RuntimeException('State machine "order.state" not found.');
+            return;
         }
 
-        // 2. Status "offer_created" anlegen (falls nicht vorhanden)
-        $offerStateId = $connection->fetchOne(
-            'SELECT id FROM state_machine_state WHERE technical_name = :name AND state_machine_id = :smid',
-            ['name' => 'offer_created', 'smid' => $stateMachineId]
-        );
-
+        // 2. Status-IDs ermitteln (binär, wie in der DB gespeichert)
+        $offerStateId = $this->getStateId($connection, $stateMachineId, 'offer_created');
         if (!$offerStateId) {
-            $offerStateId = Uuid::randomHex();
-
-            $connection->insert('state_machine_state', [
-                'id' => Uuid::fromHexToBytes($offerStateId),
-                'technical_name' => 'offer_created',
-                'state_machine_id' => $stateMachineId,
-                'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
-            ]);
-
-            // Übersetzung für Deutsch
-            $languageId = $connection->fetchOne(
-                "SELECT lg.id FROM language lg 
-                 INNER JOIN locale lc ON lc.id = lg.locale_id 
-                 WHERE lc.code = 'de-DE' LIMIT 1"
-            );
-
-            if ($languageId) {
-                $connection->insert('state_machine_state_translation', [
-                    'language_id' => $languageId,
-                    'state_machine_state_id' => Uuid::fromHexToBytes($offerStateId),
-                    'name' => 'Angebot erstellt',
-                    'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
-                ]);
-            }
+            return; // Status existiert nicht -> nichts zu tun
         }
 
-        // 3. IDs der Zielstatus ermitteln
-        $cancelledStateId = $connection->fetchOne(
-            'SELECT id FROM state_machine_state WHERE technical_name = :name AND state_machine_id = :smid',
-            ['name' => 'cancelled', 'smid' => $stateMachineId]
-        );
+        $cancelledStateId = $this->getStateId($connection, $stateMachineId, 'cancelled');
+        $inProgressStateId = $this->getStateId($connection, $stateMachineId, 'in_progress');
 
-        $inProgressStateId = $connection->fetchOne(
-            'SELECT id FROM state_machine_state WHERE technical_name = :name AND state_machine_id = :smid',
-            ['name' => 'in_progress', 'smid' => $stateMachineId]
-        );
-
-        // 4. Transitionen anlegen: offer_created -> cancelled / in_progress
+        // 3. Gewünschte Übergänge: [from, to, actionName]
         $transitions = [
             [$offerStateId, $cancelledStateId, 'cancel'],
             [$offerStateId, $inProgressStateId, 'process'],
@@ -77,31 +42,34 @@ class Migration1700000000AddOfferCreatedState extends MigrationStep
 
         foreach ($transitions as [$fromId, $toId, $actionName]) {
             if (!$fromId || !$toId) {
-                continue; // Zielstatus nicht gefunden, überspringen
+                continue; // Zielstatus fehlt -> überspringen
             }
 
+            // 4. Prüfen, ob Transition bereits existiert (Idempotenz)
             $exists = $connection->fetchOne(
-                'SELECT id FROM state_machine_transition 
-                 WHERE state_machine_id = :smid 
-                   AND from_state_id = :from 
+                'SELECT id FROM state_machine_transition
+                 WHERE state_machine_id = :smid
+                   AND from_state_id = :from
                    AND to_state_id = :to',
                 [
                     'smid' => $stateMachineId,
-                    'from' => Uuid::fromHexToBytes($fromId),
-                    'to' => Uuid::fromHexToBytes($toId),
+                    'from' => $fromId,
+                    'to' => $toId,
                 ]
             );
 
-            if (!$exists) {
-                $connection->insert('state_machine_transition', [
-                    'id' => Uuid::randomBytes(),
-                    'state_machine_id' => $stateMachineId,
-                    'action_name' => $actionName,
-                    'from_state_id' => Uuid::fromHexToBytes($fromId),
-                    'to_state_id' => Uuid::fromHexToBytes($toId),
-                    'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
-                ]);
+            if ($exists) {
+                continue;
             }
+
+            $connection->insert('state_machine_transition', [
+                'id' => Uuid::randomBytes(),
+                'state_machine_id' => $stateMachineId,
+                'action_name' => $actionName,
+                'from_state_id' => $fromId,
+                'to_state_id' => $toId,
+                'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+            ]);
         }
     }
 
@@ -109,5 +77,16 @@ class Migration1700000000AddOfferCreatedState extends MigrationStep
     {
         // Bewusst leer: Status und Transitionen bei Deinstallation nicht löschen,
         // da Bestellungen den Status referenzieren könnten.
+    }
+
+    private function getStateId(Connection $connection, string $stateMachineId, string $technicalName): ?string
+    {
+        $id = $connection->fetchOne(
+            'SELECT id FROM state_machine_state
+             WHERE technical_name = :name AND state_machine_id = :smid',
+            ['name' => $technicalName, 'smid' => $stateMachineId]
+        );
+
+        return $id !== false ? $id : null;
     }
 }
