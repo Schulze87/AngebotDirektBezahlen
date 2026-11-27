@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Gewebekalkulator – Allgemein</title>
+
+        <component name="sw-switch-field">
+            <name>useLegacyConfigView</name>
+            <label>Alte Konfigurationsansicht verwenden</label>
+            <helpText>Wenn aktiviert, wird die klassische Konfigurationsansicht (Option A + Option B) im Admin angezeigt.</helpText>
+            <defaultValue>true</defaultValue>
+        </component>
+
+        <component name="sw-text-field">
+            <name>adminNote</name>
+            <label>Hinweis</label>
+            <defaultValue>Die alte Ansicht ist verfügbar; Option C wurde entfernt.</defaultValue>
+        </component>
+
+        <component name="sw-text-field">
+            <name>fabricFormula</name>
+            <label>Gewebemenge Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, width, shrink. Beispiel: ceil(anzahl * (laenge + 0.1) * (width / 100) * (1 + shrink / 100))</helpText>
+            <defaultValue>ceil(anzahl * (laenge + 0.1) * (width / 100) * (1 + shrink / 100))</defaultValue>
+        </component>
+    </card>
+
+    <card>
+        <title>Gewebekalkulator – Option A (P1)</title>
+
+        <title>P1 Stufe 1</title>
+        <input-field type="float">
+            <name>optionAP1Stage1Max</name>
+            <label>Stufe 1 bis (m)</label>
+            <defaultValue>5</defaultValue>
+        </input-field>
+
+        <component name="sw-entity-single-select">
+            <name>optionAP1Stage1ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 1 Produkt</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP1Stage1Formula</name>
+            <label>Stufe 1 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+
+        <title>P1 Stufe 2</title>
+        <input-field type="float">
+            <name>optionAP1Stage2Max</name>
+            <label>Stufe 2 bis (m)</label>
+            <defaultValue>20</defaultValue>
+        </input-field>
+
+        <component name="sw-entity-single-select">
+            <name>optionAP1Stage2ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 2 Produkt</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP1Stage2Formula</name>
+            <label>Stufe 2 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+
+        <title>P1 Stufe 3</title>
+        <component name="sw-entity-single-select">
+            <name>optionAP1Stage3ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 3 Produkt (Fallback)</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP1Stage3Formula</name>
+            <label>Stufe 3 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+    </card>
+
+    <card>
+        <title>Gewebekalkulator – Option A (P2)</title>
+
+        <title>P2 Stufe 1</title>
+        <input-field type="float">
+            <name>optionAP2Stage1Max</name>
+            <label>Stufe 1 bis (m)</label>
+            <defaultValue>5</defaultValue>
+        </input-field>
+
+        <component name="sw-entity-single-select">
+            <name>optionAP2Stage1ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 1 Produkt</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP2Stage1Formula</name>
+            <label>Stufe 1 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+
+        <title>P2 Stufe 2</title>
+        <input-field type="float">
+            <name>optionAP2Stage2Max</name>
+            <label>Stufe 2 bis (m)</label>
+            <defaultValue>10</defaultValue>
+        </input-field>
+
+        <component name="sw-entity-single-select">
+            <name>optionAP2Stage2ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 2 Produkt</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP2Stage2Formula</name>
+            <label>Stufe 2 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+
+        <title>P2 Stufe 3</title>
+        <component name="sw-entity-single-select">
+            <name>optionAP2Stage3ProductId</name>
+            <entity>product</entity>
+            <label>Stufe 3 Produkt (Fallback)</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionAP2Stage3Formula</name>
+            <label>Stufe 3 Formel</label>
+            <helpText>Verfügbare Variablen: anzahl, laenge, mengeGewebe, mengeZusatz, width, shrink. Beispiel: mengeGewebe</helpText>
+            <defaultValue>mengeGewebe</defaultValue>
+        </component>
+    </card>
+
+    <card>
+        <title>Gewebekalkulator – Option B (Zubehör)</title>
+
+        <title>Zubehör Slot 1</title>
+        <component name="sw-entity-single-select">
+            <name>optionBSlot1ProductId</name>
+            <entity>product</entity>
+            <label>Produkt</label>
+        </component>
+        <component name="sw-text-field">
+            <name>optionBSlot1Formula</name>
+            <label>Formel</label>
+        </component>
+
+        <title>Zubehör Slot 2</title>
+        <component name="sw-entity-single-select">
+            <name>optionBSlot2ProductId</name>
+            <entity>product</entity>
+            <label>Produkt</label>
+        </component>
+        <component name="sw-text-field">
+            <name>optionBSlot2Formula</name>
+            <label>Formel</label>
+        </component>
+
+        <title>Zubehör Slot 3</title>
+        <component name="sw-entity-single-select">
+            <name>optionBSlot3ProductId</name>
+            <entity>product</entity>
+            <label>Produkt</label>
+        </component>
+        <component name="sw-text-field">
+            <name>optionBSlot3Formula</name>
+            <label>Formel</label>
+        </component>
+
+        <title>Zubehör Slot 4</title>
+        <component name="sw-entity-single-select">
+            <name>optionBSlot4ProductId</name>
+            <entity>product</entity>
+            <label>Produkt</label>
+        </component>
+        <component name="sw-text-field">
+            <name>optionBSlot4Formula</name>
+            <label>Formel</label>
+        </component>
+
+        <title>Zubehör Slot 5</title>
+        <component name="sw-entity-single-select">
+            <name>optionBSlot5ProductId</name>
+            <entity>product</entity>
+            <label>Produkt</label>
+        </component>
+        <component name="sw-text-field">
+            <name>optionBSlot5Formula</name>
+            <label>Formel</label>
+        </component>
+
+        <component name="sw-text-field">
+            <name>optionBNote</name>
+            <label>Hinweis</label>
+            <defaultValue>Wähle bis zu 5 Zubehör-Produkte; Formeln optional.</defaultValue>
+        </component>
+    </card>
+
+</config>

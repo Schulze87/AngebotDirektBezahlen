@@ -1,0 +1,392 @@
+{% set productNumber = page.product.productNumber %}
+{% set productName   = page.product.translated.name %}
+{% set cf            = page.product.translated.customFields %}
+{% set productWidth  = cf.custom_lukas_width ?? null %}
+{% set productShrink = cf.custom_lukas_schrumpf ?? null %}
+{% set lukasShaken   = cf.custom_lukas_shaken ?? false %}
+
+{% set isDefaultGroup = context.currentCustomerGroup.id == 'cfbd5018d38d41d8adca10d94fc8bdd6' %}
+{% set hideExtraPrices = context.currentCustomerGroup.id == 'd1a05f95578c4860a0174cae548aaefc' or isDefaultGroup %}
+{% set isLoggedIn = context.customer is not null %}
+
+{% set ext = page.extensions.lukasKonfigurator ?? page.extensions.lukasQuantityRule ?? {} %}
+{% set fabricFormula = ext.fabricFormula|default('ceil(anzahl * (laenge + 0.1) * (width / 100) * (1 + shrink / 100))') %}
+{% set optionA = ext.optionA ?? {} %}
+{% set optionB = ext.optionB ?? [] %}
+{% set extraMode = ext.extraMode ?? {} %}
+{% set extraModeItemsRaw = extraMode.items ?? [] %}
+
+{% set extraModeItems = [] %}
+{% for item in extraModeItemsRaw %}
+    {% if item.productId|default(null) or item.productNumberResolved|default(item.productNumber|default(null)) %}
+        {% set extraModeItems = extraModeItems|merge([item]) %}
+    {% endif %}
+{% endfor %}
+
+{% set hasGewebeMode = productWidth is not null and productShrink is not null %}
+{% set hasExtraMode = extraMode.active|default(false) and extraModeItems is not empty %}
+
+{% set showGewebeMode = hasGewebeMode and not hasExtraMode %}
+{% set showExtraMode = hasExtraMode and not hasGewebeMode %}
+{% set showKonfigurator = showGewebeMode or showExtraMode %}
+
+{% if showKonfigurator %}
+    <style>
+        {% if isDefaultGroup %}
+            a[data-swp-price-on-request="true"][data-ajax-modal="true"],
+            .buy-widget a[data-swp-price-on-request="true"],
+            .buy-widget [class*="btn-page-price-on-request"] {
+                display: none !important;
+            }
+        {% endif %}
+
+        .lukas-extra-line {
+            display: block;
+        }
+    </style>
+
+    <div class="lukas-konfigurator"
+         id="lukas-konfigurator"
+         data-add-url="{{ path('frontend.checkout.line-item.add') }}"
+         data-product-id="{{ page.product.id }}"
+         data-product-number="{{ productNumber }}"
+         data-product-name="{{ productName }}"
+         data-product-width="{{ productWidth|default('') }}"
+         data-product-shrink="{{ productShrink|default('') }}"
+         data-unit-gewebe="{{ page.product.unit.name|default('m²') }}"
+         data-unit-plural="{{ page.product.unit.packUnitPlural|default(page.product.unit.name) }}"
+         data-fabric-formula="{{ fabricFormula|e('html_attr') }}"
+         data-btn-add="{{ 'gewebekonfigurator.btnAdd'|trans }}"
+         data-btn-adding="{{ 'gewebekonfigurator.btnAdding'|trans }}"
+         data-is-default-group="{{ isDefaultGroup ? 'true' : 'false' }}"
+         data-is-logged-in="{{ isLoggedIn ? 'true' : 'false' }}"
+         data-show-extra-mode="{{ showExtraMode ? 'true' : 'false' }}"
+         data-lukas-shaken="{{ lukasShaken ? 'true' : 'false' }}"
+
+         data-p1-stage1-max="{{ optionA.p1.stage1.max|default(5) }}"
+         data-p1-stage2-max="{{ optionA.p1.stage2.max|default(20) }}"
+         data-p2-stage1-max="{{ optionA.p2.stage1.max|default(5) }}"
+         data-p2-stage2-max="{{ optionA.p2.stage2.max|default(10) }}"
+
+         data-p1-stage1-id="{{ optionA.p1.stage1.productId|default('') }}"
+         data-p1-stage2-id="{{ optionA.p1.stage2.productId|default('') }}"
+         data-p1-stage3-id="{{ optionA.p1.stage3.productId|default('') }}"
+         data-p2-stage1-id="{{ optionA.p2.stage1.productId|default('') }}"
+         data-p2-stage2-id="{{ optionA.p2.stage2.productId|default('') }}"
+         data-p2-stage3-id="{{ optionA.p2.stage3.productId|default('') }}"
+
+         data-p1-stage1-name="{{ optionA.p1.stage1.productName|default('') }}"
+         data-p1-stage2-name="{{ optionA.p1.stage2.productName|default('') }}"
+         data-p1-stage3-name="{{ optionA.p1.stage3.productName|default('') }}"
+         data-p1-stage1-number="{{ optionA.p1.stage1.productNumber|default('') }}"
+         data-p1-stage2-number="{{ optionA.p1.stage2.productNumber|default('') }}"
+         data-p1-stage3-number="{{ optionA.p1.stage3.productNumber|default('') }}"
+
+         data-p1-stage1-unit-plural="{{ optionA.p1.stage1.unitPlural|default(optionA.p1.stage1.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+         data-p1-stage2-unit-plural="{{ optionA.p1.stage2.unitPlural|default(optionA.p1.stage2.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+         data-p1-stage3-unit-plural="{{ optionA.p1.stage3.unitPlural|default(optionA.p1.stage3.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+
+         data-p1-stage1-formula="{{ optionA.p1.stage1.formula|default('mengeGewebe')|e('html_attr') }}"
+         data-p1-stage2-formula="{{ optionA.p1.stage2.formula|default('mengeGewebe')|e('html_attr') }}"
+         data-p1-stage3-formula="{{ optionA.p1.stage3.formula|default('mengeGewebe')|e('html_attr') }}"
+
+         data-p2-stage1-name="{{ optionA.p2.stage1.productName|default('') }}"
+         data-p2-stage2-name="{{ optionA.p2.stage2.productName|default('') }}"
+         data-p2-stage3-name="{{ optionA.p2.stage3.productName|default('') }}"
+
+         data-p2-stage1-number="{{ optionA.p2.stage1.productNumber|default('') }}"
+         data-p2-stage2-number="{{ optionA.p2.stage2.productNumber|default('') }}"
+         data-p2-stage3-number="{{ optionA.p2.stage3.productNumber|default('') }}"
+
+         data-p2-stage1-unit-plural="{{ optionA.p2.stage1.unitPlural|default(optionA.p2.stage1.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+         data-p2-stage2-unit-plural="{{ optionA.p2.stage2.unitPlural|default(optionA.p2.stage2.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+         data-p2-stage3-unit-plural="{{ optionA.p2.stage3.unitPlural|default(optionA.p2.stage3.unit.plural|default(page.product.unit.packUnitPlural|default(page.product.unit.name))) }}"
+
+         data-p2-stage1-formula="{{ optionA.p2.stage1.formula|default('mengeGewebe')|e('html_attr') }}"
+         data-p2-stage2-formula="{{ optionA.p2.stage2.formula|default('mengeGewebe')|e('html_attr') }}"
+         data-p2-stage3-formula="{{ optionA.p2.stage3.formula|default('mengeGewebe')|e('html_attr') }}"
+    >
+        {% if showExtraMode %}
+            <div id="lukas-konfigurator-body">
+
+                <div class="form-group mt-3 lukas-head-zubehoer">
+                    <label>{{ 'custom.lukas.hint.produktdetail'|trans }}</label>
+                </div>
+
+                {% for item in extraModeItems %}
+                    <input type="hidden"
+                           class="lukas-extra-formula"
+                           data-slot-index="{{ item.slotIndex|default(loop.index) }}"
+                           value="{{ item.formula|default('')|e('html_attr') }}">
+                {% endfor %}
+
+                <div class="form-group mt-3">
+                    {% for item in extraModeItems %}
+                        {% set idx = item.slotIndex|default(loop.index) %}
+                        {% set rawDisplayPrice = item.price.unitPrice ?? item.unitPrice ?? null %}
+                        {% set displayPrice = hideExtraPrices ? null : rawDisplayPrice %}
+                        {% set referencePrice = hideExtraPrices ? null : (item.price.referencePrice ?? null) %}
+                        {% set listPrice = hideExtraPrices ? null : (item.price.listPrice ?? null) %}
+                        {% set pricePerStack = hideExtraPrices ? '' : (item.pricePerStack|default('')) %}
+                        {% set unitPlural = item.unitPlural|default(item.unit.plural|default('Stück')) %}
+                        {% set unitSingular = item.unit.singular|default(unitPlural) %}
+
+                        {# --- NEU: Berechnung des Endpreises (mit 6 Stellen intern) --- #}
+                        {% set finalPrice = null %}
+                        {% if displayPrice is not null %}
+                            {% if pricePerStack %}
+                                {% set finalPrice = displayPrice * pricePerStack %}
+                            {% else %}
+                                {% set finalPrice = displayPrice %}
+                            {% endif %}
+                        {% endif %}
+
+                        <div class="form-check mt-2 lukas-extra-item-row"
+                             data-slot-index="{{ idx }}"
+                             data-product-id="{{ item.productId|default('') }}"
+                             data-product-number="{{ item.productNumberResolved|default(item.productNumber|default('')) }}"
+                             data-unit-plural="{{ unitPlural }}"
+                             data-unit-singular="{{ unitSingular }}"
+                             data-unit-price="{{ finalPrice is not null ? finalPrice|number_format(6, '.', '') : '' }}"
+                             data-price-per-stack="{{ pricePerStack|e('html_attr') }}">
+                            <input class="form-check-input lukas-extra-product-check"
+                                   type="checkbox"
+                                   id="lukas-extra-product-{{ idx }}"
+                                   data-slot-index="{{ idx }}"
+                                   data-product-id="{{ item.productId|default('') }}"
+                                   data-product-number="{{ item.productNumberResolved|default(item.productNumber|default('')) }}"
+                                   data-unit-plural="{{ unitPlural }}"
+                                   data-unit-singular="{{ unitSingular }}"
+                                   data-unit-price="{{ finalPrice is not null ? finalPrice|number_format(6, '.', '') : '' }}"
+                                   data-price-per-stack="{{ pricePerStack|e('html_attr') }}"/>
+
+                            <label class="form-check-label" for="lukas-extra-product-{{ idx }}">
+                                <div class="lukas-extra-row" style="display:flex; gap:12px; align-items:flex-start;">
+
+                                    <div class="lukas-extra-col-image" style="flex:0 0 64px;">
+                                        {% if item.cover and item.cover.url %}
+                                            <img src="{{ item.cover.url }}"
+                                                 alt="{{ item.cover.alt|default(item.productName|default('')) }}"
+                                                 title="{{ item.cover.title|default('') }}"
+                                                 style="width:64px;height:64px;object-fit:cover;border-radius:4px;">
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="lukas-extra-col-text" style="flex:1;">
+
+                                        <span class="lukas-extra-number lukas-extra-line">
+                                            {{ item.productNumberResolved|default(item.productNumber|default('')) }}
+                                        </span>
+
+                                        <span class="lukas-extra-name lukas-extra-line">
+                                            {{ item.productName|default('Zusatzprodukt') }}
+                                        </span>
+
+                                        <span class="lukas-extra-line">
+                                            <span class="lukas-extra-qty" id="lukas-extra-qty-{{ idx }}">1</span>
+                                            <span class="lukas-extra-unit">{{ unitPlural }}</span>
+                                        </span>
+
+                                        {% if not hideExtraPrices %}
+                                            <span class="lukas-extra-price lukas-extra-line" id="lukas-extra-price-{{ idx }}">
+                                                {% if finalPrice is not null %}
+                                                    {{ finalPrice|number_format(2, ',', '.') }} €
+                                                    {% if pricePerStack %}
+                                                        / {{ pricePerStack }} {{ unitPlural }}
+                                                    {% else %}
+                                                        / {{ unitPlural }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    –
+                                                {% endif %}
+                                            </span>
+
+                                            {% if referencePrice %}
+                                                <small class="lukas-extra-line text-muted" id="lukas-extra-reference-price-{{ idx }}">
+                                                    ({{ referencePrice.price|number_format(2, ',', '.') }} € / {{ referencePrice.referenceUnit }}{% if referencePrice.unitName %} {{ referencePrice.unitName }}{% endif %})
+                                                </small>
+                                            {% endif %}
+
+                                            {% if listPrice and listPrice.percentage > 0 %}
+                                                <small class="lukas-extra-line text-muted text-decoration-line-through" id="lukas-extra-list-price-{{ idx }}">
+                                                    {{ listPrice.price|number_format(2, ',', '.') }} €
+                                                </small>
+                                            {% endif %}
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+                            </label>
+                        </div>                        
+
+                    {% endfor %}
+                </div>
+
+                {% if not isDefaultGroup %}
+                    <button type="button" class="btn btn-primary mt-3 mb-3" id="lukas-extra-add-to-cart">
+                        {{ 'gewebekonfigurator.btnAdd'|trans }}
+                    </button>
+
+                    <style>
+                        .btn-buy {
+                            display: none !important;
+                        }
+                    </style>
+                {% else %}
+                    <a id="lukas-kontakt-link"
+                       href="/de/widgets/cms/4f0ea7a59bdf4731983c001a0acfd4e8"
+                       data-ajax-modal="true"
+                       data-url="/de/widgets/cms/4f0ea7a59bdf4731983c001a0acfd4e8"
+                       style="display:none;">
+                    </a>
+
+                    <button type="button" class="btn btn-warning mt-3 mb-3" id="lukas-kontakt-btn">
+                        {{ 'gewebekonfigurator.anfrage'|trans }}
+                    </button>
+                {% endif %}
+                <br>
+
+                <div id="lukas-extra-error" class="alert alert-danger mt-3" style="display:none;">
+                    {{ 'gewebekonfigurator.error'|trans }}
+                </div>
+
+            </div>
+        {% elseif showGewebeMode %}
+            <button type="button" class="btn btn-secondary w-100 text-start mb-3" id="lukas-toggle">
+                {{ 'gewebekonfigurator.headline'|trans }} ▼
+            </button>
+
+            <div id="lukas-konfigurator-body" style="display:none;">
+
+                <div class="form-group mt-3">
+                    <label for="lukas-anzahl">{{ 'gewebekonfigurator.anzahl.gewebebahnen'|trans }}</label>
+                    <input type="number" id="lukas-anzahl" class="form-control" min="1" value="1"/>
+                </div>
+
+                <div class="form-group mt-3">
+                    <label for="lukas-laenge">{{ 'gewebekonfigurator.laenge.gewebebahnen'|trans }}</label>
+                    <input type="number" id="lukas-laenge" class="form-control" min="0.1" step="0.1" value="1"/>
+                </div>
+
+                <div class="form-group mt-3">
+                    <label>{{ 'gewebekonfigurator.optionA'|trans }}</label><br>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="lukas-option-a"
+                               id="lukas-option-a1"
+                               value="P1"
+                               checked/>
+
+                        <label class="form-check-label" for="lukas-option-a1">
+                            <span id="lukas-option-a1-dynamic-number">{{ optionA.p1.stage1.productNumber|default('–') }}</span>
+                            –
+                            <span id="lukas-option-a1-dynamic-name">{{ optionA.p1.stage1.productName|default('–') }}</span>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="lukas-option-a"
+                               id="lukas-option-a2"
+                               value="P2"/>
+
+                        <label class="form-check-label" for="lukas-option-a2">
+                            <span id="lukas-option-a2-dynamic-number">{{ optionA.p2.stage1.productNumber|default('–') }}</span>
+                            –
+                            <span id="lukas-option-a2-dynamic-name">{{ optionA.p2.stage1.productName|default('–') }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                {% set visibleOptionB = [] %}
+                {% for item in optionB %}
+                    {% if item.productId|default(null) or item.productNumberResolved|default(item.productNumber|default(null)) %}
+                        {% set visibleOptionB = visibleOptionB|merge([item]) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if visibleOptionB is not empty %}
+                    <div class="form-group mt-3">
+                        <label>{{ 'gewebekonfigurator.optionB'|trans }}</label><br>
+
+                        {% for item in visibleOptionB %}
+                            <input type="hidden"
+                                   class="lukas-optionb-formula"
+                                   data-slot-index="{{ item.slotIndex|default(loop.index) }}"
+                                   value="{{ item.formula|default('')|e('html_attr') }}">
+                        {% endfor %}
+
+                        {% for item in visibleOptionB %}
+                            {% set idx = item.slotIndex|default(loop.index) %}
+                            <div class="form-check mt-1">
+                                <input class="form-check-input lukas-option-b-dynamic"
+                                       type="checkbox"
+                                       id="lukas-option-b{{ idx }}"
+                                       data-slot-index="{{ idx }}"
+                                       data-product-id="{{ item.productId|default('') }}"
+                                       data-product-number="{{ item.productNumberResolved|default(item.productNumber|default('')) }}"
+                                       data-unit-plural="{{ item.unitPlural|default(item.unit.plural|default('')) }}"
+                                />
+                                <label class="form-check-label" for="lukas-option-b{{ idx }}">
+                                    {{ item.productNumberResolved|default(item.productNumber|default('')) }} – {{ item.productName|default('Zubehör') }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div id="lukas-optionb-dynamic-output" class="mt-3"></div>
+                {% else %}
+                    <div id="lukas-optionb-dynamic-output" class="mt-3"></div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <p>
+                        {{ productNumber }} – {{ productName }}:
+                        <strong id="lukas-menge-display">–</strong>
+                        {{ page.product.unit.packUnitPlural|default(page.product.unit.name) }}
+                    </p>
+
+                    <p>
+                        <span id="lukas-option-a-label">
+                            <span id="lukas-option-a-dynamic-number">–</span>
+                            –
+                            <span id="lukas-option-a-dynamic-name">–</span>
+                        </span>:
+                        <strong id="lukas-zusatz-display">–</strong>
+                        <span id="lukas-zusatz-unit">–</span>
+                    </p>
+                </div>
+
+                {% if not isDefaultGroup %}
+                    <button type="button" class="btn btn-primary mt-3" id="lukas-add-to-cart" disabled>
+                        {{ 'gewebekonfigurator.btnAdd'|trans }}
+                    </button>
+
+                    <div id="lukas-error" class="alert alert-danger mt-3" style="display:none;">
+                        {{ 'gewebekonfigurator.error'|trans }}
+                    </div>
+                {% else %}
+                    <a id="lukas-kontakt-link"
+                       href="/de/widgets/cms/4f0ea7a59bdf4731983c001a0acfd4e8"
+                       data-ajax-modal="true"
+                       data-url="/de/widgets/cms/4f0ea7a59bdf4731983c001a0acfd4e8"
+                       style="display:none;">
+                    </a>
+
+                    <button type="button" class="btn btn-warning mt-3" id="lukas-kontakt-btn" disabled>
+                        {{ 'gewebekonfigurator.anfrage'|trans }}
+                    </button>
+                {% endif %}
+
+                <div class="mt-3 text-muted">
+                    {{ 'gewebekonfigurator.hint'|trans }}
+                </div>
+
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

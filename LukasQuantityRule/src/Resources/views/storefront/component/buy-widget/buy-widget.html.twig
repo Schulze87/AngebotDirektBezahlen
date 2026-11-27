@@ -1,0 +1,9 @@
+{% sw_extends '@Storefront/storefront/component/buy-widget/buy-widget.html.twig' %}
+
+{% block buy_widget_buy_form %}
+    {% if not product.customFields.custom_lukas_quantity_locked %}
+        {{ parent() }}
+    {% endif %}
+
+    {% sw_include '@LukasQuantityRule/storefront/component/lukas-konfigurator-inner.html.twig' %}
+{% endblock %}

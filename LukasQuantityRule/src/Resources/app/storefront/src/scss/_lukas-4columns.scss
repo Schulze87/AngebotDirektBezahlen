@@ -1,0 +1,26 @@
+.lukas-4columns-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.lukas-4columns-item {
+  min-height: 1px;
+}
+
+.lukas-4columns-placeholder {
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px dashed #ddd;
+  color: #777;
+}
+
+@media (max-width: 767px) {
+  .lukas-4columns-grid { grid-template-columns: 1fr; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .lukas-4columns-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .lukas-4columns-grid { grid-template-columns: repeat(3, 1fr); }
+}

@@ -1,0 +1,8 @@
+{% sw_extends '@Storefront/storefront/component/line-item/element/quantity.html.twig' %}
+
+{% block component_line_item_quantity_select_input %}
+    {% if lineItem.payload.customFields.custom_lukas_quantity_locked ?? false %}
+        {% set isDigital = true %}
+    {% endif %}
+    {{ parent() }}
+{% endblock %}
