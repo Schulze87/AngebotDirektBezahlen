@@ -1,0 +1,22 @@
+{% sw_extends '@Storefront/storefront/page/account/order-history/order-item.html.twig' %}
+
+{% block page_account_order_item_status %}
+    {{ parent() }}
+
+    {# Status der letzten Transaktion ermitteln (6.7-kompatibel, 6.8 vorbereitet) #}
+    {% if feature('v6.8.0.0') %}
+        {% set orderPaymentState = order.primaryOrderTransaction.stateMachineState.technicalName %}
+    {% else %}
+        {% set orderPaymentState = order.transactions|length > 0 ? order.transactions|last.stateMachineState.technicalName : null %}
+    {% endif %}
+    {% set orderState = order.stateMachineState.technicalName %}
+
+    {% if orderState == 'offer_created' and orderPaymentState == ORDER_TRANSACTION_STATE_OPEN %}
+        <div class="mt-2">
+            <a href="{{ path('frontend.angebot.pay', { 'orderId': order.id }) }}"
+               class="btn btn-primary btn-sm">
+                Jetzt bezahlen
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
