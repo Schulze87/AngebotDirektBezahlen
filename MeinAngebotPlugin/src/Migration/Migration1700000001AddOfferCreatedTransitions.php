@@ -15,7 +15,6 @@ class Migration1700000001AddOfferCreatedTransitions extends MigrationStep
 
     public function update(Connection $connection): void
     {
-        // 1. State Machine ID für order.state ermitteln
         $stateMachineId = $connection->fetchOne(
             'SELECT id FROM state_machine WHERE technical_name = :name',
             ['name' => 'order.state']
@@ -25,16 +24,14 @@ class Migration1700000001AddOfferCreatedTransitions extends MigrationStep
             return;
         }
 
-        // 2. Status-IDs ermitteln (binär, wie in der DB gespeichert)
         $offerStateId = $this->getStateId($connection, $stateMachineId, 'offer_created');
         if (!$offerStateId) {
-            return; // Status existiert nicht -> nichts zu tun
+            return;
         }
 
         $cancelledStateId = $this->getStateId($connection, $stateMachineId, 'cancelled');
         $inProgressStateId = $this->getStateId($connection, $stateMachineId, 'in_progress');
 
-        // 3. Gewünschte Übergänge: [from, to, actionName]
         $transitions = [
             [$offerStateId, $cancelledStateId, 'cancel'],
             [$offerStateId, $inProgressStateId, 'process'],
@@ -42,10 +39,9 @@ class Migration1700000001AddOfferCreatedTransitions extends MigrationStep
 
         foreach ($transitions as [$fromId, $toId, $actionName]) {
             if (!$fromId || !$toId) {
-                continue; // Zielstatus fehlt -> überspringen
+                continue;
             }
 
-            // 4. Prüfen, ob Transition bereits existiert (Idempotenz)
             $exists = $connection->fetchOne(
                 'SELECT id FROM state_machine_transition
                  WHERE state_machine_id = :smid
@@ -75,8 +71,6 @@ class Migration1700000001AddOfferCreatedTransitions extends MigrationStep
 
     public function updateDestructive(Connection $connection): void
     {
-        // Bewusst leer: Status und Transitionen bei Deinstallation nicht löschen,
-        // da Bestellungen den Status referenzieren könnten.
     }
 
     private function getStateId(Connection $connection, string $stateMachineId, string $technicalName): ?string
