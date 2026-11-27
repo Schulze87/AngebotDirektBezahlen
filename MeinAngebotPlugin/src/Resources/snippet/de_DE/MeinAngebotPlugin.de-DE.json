@@ -1,0 +1,7 @@
+{
+    "MeinAngebotPlugin": {
+        "order": {
+            "checkOfferButton": "Angebot überprüfen"
+        }
+    }
+}
