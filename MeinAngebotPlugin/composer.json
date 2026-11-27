@@ -1,0 +1,22 @@
+{
+    "name": "mein-vendor/mein-angebot-plugin",
+    "description": "Fügt Bestellstatus 'Angebot erstellt' und Zahlungsbutton hinzu",
+    "version": "1.0.0",
+    "type": "shopware-platform-plugin",
+    "license": "MIT",
+    "require": {
+        "shopware/core": "~6.7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MeinVendor\\MeinAngebotPlugin\\": "src/"
+        }
+    },
+    "extra": {
+        "shopware-plugin-class": "MeinVendor\\MeinAngebotPlugin\\MeinAngebotPlugin",
+        "label": {
+            "de-DE": "Mein Angebot Plugin",
+            "en-GB": "My Offer Plugin"
+        }
+    }
+}
