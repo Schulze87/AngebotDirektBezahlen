@@ -13,9 +13,9 @@
 
     {% if orderState == 'offer_created' and orderPaymentState == ORDER_TRANSACTION_STATE_OPEN %}
         <div class="mt-2">
-            <a href="{{ path('frontend.angebot.pay', { 'orderId': order.id }) }}"
+            <a href="{{ path('frontend.account.edit-order.page', { 'orderId': order.id }) }}"
                class="btn btn-primary btn-sm">
-                Jetzt bezahlen
+                {{ 'MeinAngebotPlugin.order.checkOfferButton'|trans }}
             </a>
         </div>
     {% endif %}
