@@ -1,12 +1,26 @@
+{# src/Resources/views/storefront/account/order/index.html.twig #}
 {% sw_extends '@Storefront/storefront/account/order/index.html.twig' %}
 
 {% block account_order_list_item_actions %}
     {{ parent() }}
 
+    {# ---- Werte ermitteln: Order-Status + Zahlungsstatus der LETZTEN Transaktion ---- #}
     {% set orderState = order.stateMachineState.technicalName %}
-    {% set transaction = order.transactions.first %}
-    {% set paymentState = transaction ? transaction.stateMachineState.technicalName : null %}
+    {% set transactionCount = order.transactions|length %}
+    {% set lastTransaction = transactionCount > 0 ? order.transactions|last : null %}
+    {% set paymentState = lastTransaction ? lastTransaction.stateMachineState.technicalName : null %}
 
+    {# ---- DEBUG (nur temporär, danach entfernen) ---- #}
+    <div style="background:#fff3cd;border:1px solid #ffc107;padding:6px;margin-top:6px;font-size:12px;">
+        <strong>DEBUG Bestellung {{ order.orderNumber }}</strong><br>
+        OrderState: <code>{{ orderState }}</code><br>
+        Transaktionen: <code>{{ transactionCount }}</code><br>
+        PaymentState (last): <code>{{ paymentState ?? 'keine' }}</code><br>
+        Bedingung erfüllt: <code>{{ (orderState == 'offer_created' and paymentState == 'open') ? 'JA' : 'NEIN' }}</code>
+    </div>
+    {# ---- DEBUG ENDE ---- #}
+
+    {# ---- Button nur bei offer_created + open ---- #}
     {% if orderState == 'offer_created' and paymentState == 'open' %}
         <a href="{{ path('frontend.angebot.pay', { 'orderId': order.id }) }}"
            class="btn btn-primary btn-sm mt-2"
