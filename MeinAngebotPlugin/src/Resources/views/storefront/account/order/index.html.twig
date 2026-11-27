@@ -1,0 +1,17 @@
+{% sw_extends '@Storefront/storefront/account/order/index.html.twig' %}
+
+{% block account_order_list_item_actions %}
+    {{ parent() }}
+
+    {% set orderState = order.stateMachineState.technicalName %}
+    {% set transaction = order.transactions.first %}
+    {% set paymentState = transaction ? transaction.stateMachineState.technicalName : null %}
+
+    {% if orderState == 'offer_created' and paymentState == 'open' %}
+        <a href="{{ path('frontend.angebot.pay', { 'orderId': order.id }) }}"
+           class="btn btn-primary btn-sm mt-2"
+           title="Jetzt bezahlen">
+            Jetzt bezahlen
+        </a>
+    {% endif %}
+{% endblock %}
