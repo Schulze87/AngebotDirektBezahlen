@@ -3,42 +3,49 @@ name: Build Plugin
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:   # manuell auslösbar
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Debug – Struktur prüfen
         run: |
-          echo "=== Inhalt Repo-Root ==="
+          echo "=== Repo-Root ==="
           ls -la
-          echo "=== Inhalt von LukasQuantityRule/ ==="
+          echo "=== Plugin-Verzeichnis ==="
           ls -la ./LukasQuantityRule
           echo "=== composer.json (Plugin) ==="
           cat ./LukasQuantityRule/composer.json
           echo "=== src/ (Auszug) ==="
           find ./LukasQuantityRule/src -maxdepth 3 -type f | head -n 200
-          echo "=== Plugin-Klasse (falls vorhanden) ==="
-          find ./LukasQuantityRule/src -maxdepth 2 -type f -name "*.php" -print
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: ctype, iconv, json, mbstring, openssl, pdo, tokenizer, xml, zip
+          coverage: none
 
       - name: Install shopware-cli
         uses: shopware/shopware-cli-action@v1
         with:
           version: 0.12.0
 
-      - name: Build Extension
-        run: shopware-cli extension zip ./LukasQuantityRule --disable-git --verbose
-
-      - name: Validate ZIP (optional)
-        run: shopware-cli extension validate *.zip
+      - name: Build Extension ZIP
+        run: |
+          shopware-cli extension zip ./LukasQuantityRule \
+            --disable-git \
+            --output-directory ./dist \
+            --verbose
 
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: LukasQuantityRule
-          path: "*.zip"
+          path: ./dist/*.zip
+          retention-days: 30
